@@ -39,7 +39,6 @@ public class AuthController {
         return new ResponseEntity<>(ApiResponse.<String>builder()
                 .message("Đã gửi mã OTP đến email của bạn.")
                 .statusCode(200)
-                .data(otp)
                 .build(), HttpStatus.OK);
     }
 
@@ -56,7 +55,6 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .message("Đăng ký thành công.")
                 .statusCode(200)
-                .data(result)
                 .build());
     }
     

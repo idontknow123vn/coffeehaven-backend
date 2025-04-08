@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -71,11 +72,12 @@ public class AuthServiceImpl implements AuthService {
     public String register(CreateEmployeeRequest request) {
         // TODO Auto-generated method stub
         
-        Employee employee = employeeRepos.findByEmail(request.getEmail()).get();
-        if (employee != null) {
+        Optional<Employee> existingEmployee = employeeRepos.findByEmail(request.getEmail());
+        if (existingEmployee.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
-        employee = new Employee();
+        
+        Employee employee = new Employee();
         employee.setUsername(request.getName());
         employee.setName(request.getName());
         employee.setPasswordHash(passwordEncoder.encode(request.getPassword()));
