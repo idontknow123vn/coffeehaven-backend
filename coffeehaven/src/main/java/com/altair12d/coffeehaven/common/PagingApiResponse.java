@@ -1,4 +1,4 @@
-package com.altair12d.coffeehaven.dto.response;
+package com.altair12d.coffeehaven.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -16,7 +16,13 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
-public class AuthResponse {
-    private String accessToken;
-    private String refreshToken;
+public class PagingApiResponse<T> {
+    private String message;
+    private T data;
+    @Builder.Default
+    private int statusCode = 1000;
+    private int pageNumber;
+    private int pageSize;
+    private long totalElements;
+    private int totalPages;
 }

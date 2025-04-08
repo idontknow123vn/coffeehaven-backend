@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import com.altair12d.coffeehaven.dto.request.CreateEmployeeRequest;
 import com.altair12d.coffeehaven.entity.Employee;
+import com.altair12d.coffeehaven.exception.AppException;
+import com.altair12d.coffeehaven.exception.ErrorCode;
 import com.altair12d.coffeehaven.repository.EmployeeRepos;
 import com.altair12d.coffeehaven.service.AuthService;
 import com.nimbusds.jose.JOSEException;
@@ -52,12 +54,12 @@ public class AuthServiceImpl implements AuthService {
         // TODO Auto-generated method stub
         // Employee employee = employeeRepos.findByEmailAndPasswordHash(username, passwordEncoder.encode(password))
         //         .orElseThrow(() -> new RuntimeException("Tài khoản hoặc mật khẩu không đúng"));
-        Employee employee = employeeRepos.findByEmail(username).orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        Employee employee = employeeRepos.findByEmail(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         if (!passwordEncoder.matches(password, employee.getPasswordHash())) {
-            throw new RuntimeException("Tài khoản hoặc mật khẩu không đúng");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         if (employee.getStatus().equals("Inactive")) {
-            throw new RuntimeException("Tài khoản đã bị khóa");
+            throw new AppException(ErrorCode.INACTIVE_USER);
         }
         employee.setLastLogin(Instant.now());
         employeeRepos.save(employee);
@@ -69,13 +71,9 @@ public class AuthServiceImpl implements AuthService {
     public String register(CreateEmployeeRequest request) {
         // TODO Auto-generated method stub
         
-        Employee employee = employeeRepos.findByUsername(request.getName());
+        Employee employee = employeeRepos.findByEmail(request.getEmail()).get();
         if (employee != null) {
-            throw new RuntimeException("Username already exists");
-        }
-        employee = employeeRepos.findByEmail(request.getEmail()).get();
-        if (employee != null) {
-            throw new RuntimeException("Email already exists");
+            throw new AppException(ErrorCode.USER_EXISTED);
         }
         employee = new Employee();
         employee.setUsername(request.getName());
@@ -132,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
 
         var verified = signedJWT.verify(verifier);
 
-        if (!(verified && expiryTime.after(new Date()))) throw new RuntimeException("Expired token");
+        if (!(verified && expiryTime.after(new Date()))) throw new AppException(ErrorCode.TOKEN_EXPIRED);
 
         return signedJWT;
     }
